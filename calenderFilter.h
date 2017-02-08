@@ -4,7 +4,7 @@
 * @Email:  izharits@gmail.com
 * @Filename: calenderFilter.h
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T03:25:03-05:00
+* @Last modified time: 2017-02-08T04:52:03-05:00
 */
 
 
@@ -107,7 +107,7 @@ int getEarliestEventOfTheDay(node_t *sortedEventList, event_t *OutEvent);
 int isEventPresentInTheList(node_t *list, event_t *requestedEvent, int *indexOut);
 int getEventIDWithMatchingTitleFromList(node_t *list, event_t *requestedEvent, int *indexOut);
 
-/* Functions for emailFilter */
+/* Functions for Email Filter */
 int isComma(char alpha);
 int isValidTime(char *time);
 int isValidDate(char *date);
@@ -117,5 +117,10 @@ int isValidEmailFormat(char *emailSubject, size_t size);
 /* Pthreads Buffer Functions */
 circularBuffer_t *createBuffer(int capacity);
 void destroyBuffer(circularBuffer_t **bufferToDestroy);
+
+/* Functions for Calender Filter */
+void processEventCreate(stringPool_t **pool, event_t *event);
+void processEventDelete(stringPool_t **pool, event_t *event);
+void processEventModify(stringPool_t **pool, event_t *event);
 
 #endif

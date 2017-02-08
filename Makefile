@@ -3,7 +3,7 @@
 # @Email:  izharits@gmail.com
 # @Filename: Makefile
 # @Last modified by:   Izhar Shaikh
-# @Last modified time: 2017-02-08T04:33:38-05:00
+# @Last modified time: 2017-02-08T05:18:23-05:00
 
 # Add the new TARGETS here
 TARGETS = simplePthreadsExample pthreadsProducerConsumer
@@ -18,9 +18,9 @@ simplePthreadsExample:
 	$(CC) $(CFLAGS) simplePthreadsExample.c $(HEADERS) -o $(BIN_PATH)/$@
 
 pthreadsProducerConsumer:
-	$(CC) $(CFLAGS) pthreadsProducerConsumer.c manageBuffer.c emailFilter.c \
-	stringPool.c eventList.c eventProcessing.c stringProcessing.c $(HEADERS) \
-	-o $(BIN_PATH)/$@
+	$(CC) $(CFLAGS) pthreadsProducerConsumer.c emailFilter.c calenderFilter.c \
+	manageBuffer.c stringPool.c eventList.c eventProcessing.c stringProcessing.c \
+	$(HEADERS) -o $(BIN_PATH)/$@
 
 clean:
 	rm -rf $(TARGETS) $(BIN_PATH) *.o

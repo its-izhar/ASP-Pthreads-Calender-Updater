@@ -4,7 +4,7 @@
  * @Email:  izharits@gmail.com
  * @Filename: pthreadsExample.c
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T04:43:26-05:00
+* @Last modified time: 2017-02-08T05:26:55-05:00
  */
 
 #define _GNU_SOURCE
@@ -56,7 +56,7 @@ static void *producerThread(void *arg)
       inBuffer[readSize - 1] = '\0';
     }
     ++totalStringsCount;
-    dbg_trace("String [size: %zu]: %s\n", strlen(inBuffer), inBuffer);
+    dbg_trace("PRODUCER: String [size: %zu]: %s\n", strlen(inBuffer), inBuffer);
 
     // Check for valid strings based on the format
     isValidString = false;
@@ -85,6 +85,8 @@ static void *producerThread(void *arg)
       dbg_trace("PRODUCER: Writing to buffer...%s\n", validString);
       memset(buffer->items[buffer->in], 0, BUFFERSIZE*sizeof(char));
       strncpy(buffer->items[buffer->in], validString, BUFFERSIZE);
+      // NOTE:: Enable the following line to check producer's output
+      //print_output("%s\n", validString);
       buffer->in = (buffer->in + 1) % buffer->capacity;
       ++numItems;
       dbg_trace("PRODUCER: numItems: %d\n", numItems);
@@ -102,7 +104,7 @@ static void *producerThread(void *arg)
   free(inBuffer);
   inBuffer = NULL;
   // Printing the count of total strings and the valid strings
-  dbg_trace("Total Strings: %d, Valid Strings: %d\n",
+  dbg_trace("PRODUCER: Total Strings: %d, Valid Strings: %d\n",
             totalStringsCount, validStringsCount);
 
   // Ask the consumer to finish
@@ -121,6 +123,15 @@ static void *producerThread(void *arg)
 /* Consumer */
 static void *consumerThread(void *arg)
 {
+  char outBuffer[BUFFERSIZE] = { 0 };    // Buffer to hold a line of the string
+  event_t newEvent;                      // Event to hold new event entry
+  stringPool_t *eventPool = NULL;        // Event Pool according to dates
+  int totalStringsCount = 0;
+
+  // create the string pool
+  eventPool = createStringPool(POOL_CAPACITY);
+  // Reset the outBuffer
+  memset(outBuffer, 0, BUFFERSIZE);
   // Get the handle for the data
   circularBuffer_t *buffer = (circularBuffer_t *) arg;
 
@@ -138,7 +149,9 @@ static void *consumerThread(void *arg)
         break;
       }
       dbg_info("CONSUMER: Reading from buffer...\n");
-      print_output("%s\n", buffer->items[buffer->out]);
+      //print_output("%s\n", buffer->items[buffer->out]);
+      strncpy(outBuffer, buffer->items[buffer->out], BUFFERSIZE);
+      outBuffer[BUFFERSIZE-1] = '\0';          // Force the end of the string
       buffer->out = (buffer->out + 1) % buffer->capacity;
       --numItems;
       dbg_trace("CONSUMER: numItems: %d\n", numItems);
@@ -148,7 +161,44 @@ static void *consumerThread(void *arg)
       dbg_info("CONSUMER: Releasing Lock!\n");
     pthread_mutex_unlock(&lock);
     // Exit: Critical Section
+
+    // Processing begins
+    ++totalStringsCount;
+    dbg_trace("CONSUMER: String [size: %d]: %s\n", (int) strlen(outBuffer), outBuffer);
+    // We assume that the given string is valid, so we parse
+    parseEvent(outBuffer, &newEvent);
+
+    // Process Events
+    switch(newEvent.mode)
+    {
+      case EVENT_CREATE:
+        processEventCreate(&eventPool, &newEvent);
+        break;
+
+      case EVENT_DELETE:
+        processEventDelete(&eventPool, &newEvent);
+        break;
+
+      case EVENT_MODIFY:
+        processEventModify(&eventPool, &newEvent);
+        break;
+
+      default:
+        dbg_info("CONSUMER: Unknown Mode! Error!\n");
+    }
+
+    // Clear the outBuffer before reading next string
+    memset(&newEvent, 0, sizeof(event_t));
+    memset(outBuffer, 0, BUFFERSIZE);
+    dbg_info("\n");
   }
+  // Printing the count of total strings and the valid strings
+  dbg_trace("CONSUMER: Total Strings: %d\n\n", totalStringsCount);
+  // Display the contents of the string pool
+  displayEventDatePool(eventPool);
+  // destroy the pool
+  destroyEventDatePool(&eventPool);
+
   dbg_info("CONSUMER: EXIT!\n");
   pthread_exit(NULL);
 }
