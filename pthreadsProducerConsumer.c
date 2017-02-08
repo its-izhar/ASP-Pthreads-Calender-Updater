@@ -4,7 +4,7 @@
  * @Email:  izharits@gmail.com
  * @Filename: pthreadsExample.c
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T04:03:24-05:00
+* @Last modified time: 2017-02-08T04:43:26-05:00
  */
 
 #define _GNU_SOURCE
@@ -165,20 +165,21 @@ int main(int argc, char const *argv[])
     dbg_info("Please enter the buffer size as command line argument!\n");
     return 0;
   }
-  int queueSize = atoi((const char *) argv[1]);
-  if(queueSize < 1){
-    dbg_trace("Invalid Buffer Size: %d, Enter buffer size at least greater than or equal to 1.\n",
-                      queueSize);
+  int inSize = atoi((const char *) argv[1]);
+  if(inSize < 1){
+    dbg_trace("Invalid Buffer Size: %d,\
+     Enter buffer size at least greater than or equal to 1.\n",
+                      inSize);
     return 0;
   }
-  dbg_trace("Buffer size, given: %d\n", queueSize);
+  dbg_trace("Buffer size, given: %d\n", inSize);
 
-  circularBuffer_t *buffer = createBuffer(queueSize);
+  circularBuffer_t *buffer = createBuffer(inSize);
   if(buffer == NULL){
     dbg_info("Memory Error!\n");
     return 0;
   }
-  dbg_trace("Buffer Initialized: %d, Size: %zu\n", buffer->capacity, sizeof(*buffer));
+  dbg_trace("Buffer Initialized: %d.\n",buffer->capacity);
 
   // Initialize the Mutex & Conditions
   int mutexStatus = pthread_mutex_init(&lock, NULL);
@@ -197,27 +198,27 @@ int main(int argc, char const *argv[])
     return 0;
   }
 
+  // Create and run threads
   for(int i=0; i<NUM_THREADS; i++)
   {
     dbg_trace("Creating thread: %d, %s\n", i, (i==0)? "Producer.":"Consumer.");
-
     int status = -1;
-    // Create and run threads
-    if(i==0)
+    if(i==0){
       status = pthread_create(&ThreadID[i], NULL, &producerThread, buffer);
-    else
+    }
+    else {
       status = pthread_create(&ThreadID[i], NULL, &consumerThread, buffer);
-
+    }
     if(status != 0) {
       dbg_trace("Failed during creation of the thread: %d\n", i);
     }
   }
 
+  // Wait until threads finish their jobs
   for(int i=0; i<NUM_THREADS; i++) {
     pthread_join(ThreadID[i], NULL);
     dbg_trace("MAIN: Thread %d terminated!\n", i);
   }
-
   // Cleanup
   pthread_mutex_destroy(&lock);
   pthread_cond_destroy(&full);

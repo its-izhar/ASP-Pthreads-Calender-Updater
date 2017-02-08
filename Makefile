@@ -3,14 +3,14 @@
 # @Email:  izharits@gmail.com
 # @Filename: Makefile
 # @Last modified by:   Izhar Shaikh
-# @Last modified time: 2017-02-08T04:11:21-05:00
+# @Last modified time: 2017-02-08T04:33:38-05:00
 
 # Add the new TARGETS here
 TARGETS = simplePthreadsExample pthreadsProducerConsumer
 CC = gcc
 HEADERS = -I.
 BIN_PATH = bin
-CFLAGS = -Wall -Werror -std=c99 -pthread -O0 -g -DDEBUG
+CFLAGS = -Wall -Werror -std=c99 -pthread -Og -g -DDEBUG
 
 all: clean create_bin $(TARGETS)
 

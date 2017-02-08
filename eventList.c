@@ -1,3 +1,13 @@
+/**
+* @Author: Izhar Shaikh
+* @Date:   2017-02-08T03:15:44-05:00
+* @Email:  izharits@gmail.com
+* @Filename: eventList.c
+* @Last modified by:   Izhar Shaikh
+* @Last modified time: 2017-02-08T04:34:34-05:00
+*/
+
+
 #include <stdlib.h>
 #include <string.h>
 #include "calenderFilter.h"
@@ -171,6 +181,7 @@ int deleteNode(node_t **head, int position)
 
   // get the current head of the list
   positionNode = *head;
+  previousNode = *head;
 
   // Error checking
   if(positionNode == NULL){

@@ -4,7 +4,7 @@
 * @Email:  izharits@gmail.com
 * @Filename: emailFilter.c
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T03:19:34-05:00
+* @Last modified time: 2017-02-08T04:39:13-05:00
 */
 
 
@@ -43,7 +43,7 @@ int isValidDate(char *date)     // mm/dd/yyyy
   dbg_trace("Date String: %s\n", date);
 
   for(count = 0; count < DATE_STRING_SIZE; count++) {
-    dbg_trace("Char: %c, Pos: %d\n", date[count], count);
+    //dbg_trace("Char: %c, Pos: %d\n", date[count], count);
     if(count == 2 || count == 5) {
       if(date[count] != '/') {
         dbg_trace("Expected Char: %c, found: %c, Pos: %d\n", '/', date[count], count);
@@ -67,7 +67,7 @@ int isValidTime(char *time)
   dbg_trace("Time String: %s\n", time);
 
   for(count = 0; count < TIME_STRING_SIZE; count++) {
-    dbg_trace("Char: %c, Pos: %d\n", time[count], count);
+    //dbg_trace("Char: %c, Pos: %d\n", time[count], count);
     if(count == 2) {
       if(time[count] != ':') {
         dbg_trace("Expected Char: %c, found: %c, Pos: %d\n", ':', time[count], count);
@@ -112,7 +112,7 @@ int isValidEmailFormat(char *emailSubject, size_t size)
       case MODE_STRING_SIZE+TITLE_STRING_SIZE*2+TIME_STRING_SIZE+3:
         if(isComma(*ptr)){
           ++commaCount;
-          dbg_trace("Comma found at %d position!\n", position);
+          //dbg_trace("Comma found at %d position!\n", position);
         }
         break;
     }
