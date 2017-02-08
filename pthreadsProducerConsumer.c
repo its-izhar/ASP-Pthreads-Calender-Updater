@@ -4,9 +4,10 @@
  * @Email:  izharits@gmail.com
  * @Filename: pthreadsExample.c
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T02:56:40-05:00
+* @Last modified time: 2017-02-08T04:03:24-05:00
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,11 +17,12 @@
 #include <string.h>
 #include <stdbool.h>
 #include "debugMacros.h"
-#include "pthreadsProducerConsumer.h"
+#include "calenderFilter.h"
 
 
 // Global varibales
 // Mutex and Condition Variables
+pthread_t ThreadID[NUM_THREADS];
 pthread_mutex_t lock;
 pthread_cond_t full;
 pthread_cond_t empty;
@@ -35,24 +37,54 @@ char *array[MAX_STRINGS] = {"Hello", "Hi","Goodbye!", "Coffee", "Tea", "House"};
 /* Producer */
 static void *producerThread(void *arg)
 {
+  int minBound = BUFFERSIZE - 10;   // 35
+  char *inBuffer = NULL;
+  char *validString = NULL;
+  size_t inBufferLength = 0;
+  ssize_t readSize;
+  bool isValidString = false;
+  int totalStringsCount = 0, validStringsCount = 0;
+  int subjectWordSkipSpace = SUBJECT_WORD_SKIP_SIZE; // To Skip "Subject:" String
+
   // Get the handle for the data
   circularBuffer_t *buffer = (circularBuffer_t *) arg;
-  int i=5000;
-
-  while(i--)
+  // Read a line from stdin and process it
+  while((readSize = getline(&inBuffer, &inBufferLength, stdin)) != -1)
   {
-    // Get the item
-    int itemIndex = rand() % MAX_STRINGS;
+    // Replace newline
+    if( inBuffer[readSize - 1] == '\n' ) {
+      inBuffer[readSize - 1] = '\0';
+    }
+    ++totalStringsCount;
+    dbg_trace("String [size: %zu]: %s\n", strlen(inBuffer), inBuffer);
 
-    // Enter: Critical Section
+    // Check for valid strings based on the format
+    isValidString = false;
+    if(readSize >= minBound) {
+      if (isValidEmailFormat(inBuffer, readSize)) {
+        ++validStringsCount;
+        isValidString = true;
+        //print_output("%s\n", inBuffer + subjectWordSkipSpace);
+      }
+    }
+    // If the string is less than minimum bound or not valid, just read the next one
+    if(isValidString == false){
+      validString = NULL;
+      memset(inBuffer, 0, inBufferLength); // Reset the buffer to get next line
+      continue;
+    }
+    // Get the handle to the valid string
+    validString = inBuffer + subjectWordSkipSpace;
+
+    // ---- Enter: Critical Section
     pthread_mutex_lock(&lock);
       dbg_info("PRODUCER: Acquired Lock!\n");
       while(numItems == buffer->capacity){
         pthread_cond_wait(&full, &lock);
       }
-      dbg_trace("PRODUCER: Writing to buffer...%s\n", array[itemIndex]);
+      dbg_trace("PRODUCER: Writing to buffer...%s\n", validString);
       memset(buffer->items[buffer->in], 0, BUFFERSIZE*sizeof(char));
-      strncpy(buffer->items[buffer->in], array[itemIndex], BUFFERSIZE);
+      strncpy(buffer->items[buffer->in], validString, BUFFERSIZE);
       buffer->in = (buffer->in + 1) % buffer->capacity;
       ++numItems;
       dbg_trace("PRODUCER: numItems: %d\n", numItems);
@@ -61,8 +93,18 @@ static void *producerThread(void *arg)
         pthread_cond_signal(&empty);
       dbg_info("PRODUCER: Releasing Lock!\n");
     pthread_mutex_unlock(&lock);
-    // Exit: Critical Section
+    // ---- Exit: Critical Section
+
+    // Reset the buffer, before proceeding
+    memset(inBuffer, 0, inBufferLength);
   }
+  // Free the inBuffer
+  free(inBuffer);
+  inBuffer = NULL;
+  // Printing the count of total strings and the valid strings
+  dbg_trace("Total Strings: %d, Valid Strings: %d\n",
+            totalStringsCount, validStringsCount);
+
   // Ask the consumer to finish
   pthread_mutex_lock(&lock);
     dbg_info("PRODUCER: Asked the consumer to finish!\n");
@@ -91,6 +133,7 @@ static void *consumerThread(void *arg)
         pthread_cond_wait(&empty, &lock);
       }
       if(numItems == 0 && producerDone == true){
+        dbg_info("CONSUMER: Released Lock!\n");
         pthread_mutex_unlock(&lock);
         break;
       }
@@ -114,10 +157,8 @@ static void *consumerThread(void *arg)
 // ------------------------ main() ------------------------------
 int main(int argc, char const *argv[])
 {
-  pthread_t ThreadID[NUM_THREADS];
-  //threadData_t threadData[NUM_THREADS];
-
-  srand(time(NULL)); // Rendom seed
+  // Rendom seed for random generator
+  srand(time(NULL));
 
   // Check and parse the command line argument
   if(argc != 2){
