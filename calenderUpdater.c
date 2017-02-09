@@ -4,13 +4,12 @@
  * @Email:  izharits@gmail.com
  * @Filename: pthreadsExample.c
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T22:12:13-05:00
+* @Last modified time: 2017-02-08T23:03:44-05:00
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <time.h>
 #include <stdbool.h>
 #include "debugMacros.h"
 #include "calenderFilter.h"
@@ -33,17 +32,14 @@ extern void *consumerThread(void *);
 // ------------------------ main() ------------------------------
 int main(int argc, char const *argv[])
 {
-  // Rendom seed for random generator
-  srand(time(NULL));
-
   // Check and parse the command line argument
   if(argc != 2){
-    dbg_info("Please enter the buffer size as command line argument!\n");
+    print_output("%s","Please enter the buffer size as command line argument!\n");
     return 0;
   }
   int inSize = atoi((const char *) argv[1]);
   if(inSize < 1){
-    dbg_trace("Invalid Buffer Size: %d,\
+    print_output("Invalid Buffer Size: %d,\
      Enter buffer size at least greater than or equal to 1.\n",
                       inSize);
     return 0;
