@@ -4,7 +4,7 @@
 * @Email:  izharits@gmail.com
 * @Filename: calenderFilter.h
 * @Last modified by:   Izhar Shaikh
-* @Last modified time: 2017-02-08T04:52:03-05:00
+* @Last modified time: 2017-02-08T21:34:29-05:00
 */
 
 
@@ -53,6 +53,9 @@ typedef struct eventFormat
 
 // Avents for a particular date
 typedef struct Node node_t;
+
+// Typedef for Thread Functions
+typedef void *(*threadFunction_t)(void *);
 
 struct Node {
   event_t event;
